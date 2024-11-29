@@ -6,7 +6,7 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/amrishkshah/dice/config"
+	"github.com/amrishkshah/dicedb/config"
 )
 
 func readCommand(c net.Conn) (string, error) {

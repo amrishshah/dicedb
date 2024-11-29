@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/amrishkshah/dice/config"
-	"github.com/amrishkshah/dice/server"
+	"github.com/amrishkshah/dicedb/config"
+	"github.com/amrishkshah/dicedb/server"
 )
 
 func setupFlags() {

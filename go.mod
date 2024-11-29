@@ -1,3 +1,3 @@
-module github.com/amrishkshah/dice
+module github.com/amrishkshah/dicedb
 
 go 1.22.3
