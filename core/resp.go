@@ -1,6 +1,10 @@
 package core
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"log"
+)
 
 func readLength(data []byte) (int, int) {
 	pos := 0
@@ -57,6 +61,8 @@ func readArray(data []byte) (interface{}, int, error) {
 		elems[i] = elem
 		pos += delta
 	}
+	log.Println("readArray")
+	log.Println(len(elems))
 	return elems, pos, nil
 }
 
@@ -64,6 +70,8 @@ func DecodeOne(data []byte) (interface{}, int, error) {
 	if len(data) == 0 {
 		return nil, 0, errors.New("no data")
 	}
+	log.Println("DecodeOne")
+	log.Println(string(data))
 	switch data[0] {
 	case '+':
 		return readSimpleString(data)
@@ -82,6 +90,39 @@ func Decode(data []byte) (interface{}, error) {
 	if len(data) == 0 {
 		return nil, errors.New("no data")
 	}
+	log.Println("Decode")
 	value, _, err := DecodeOne(data)
+	log.Println(value)
 	return value, err
+}
+
+func DecodeArrayString(data []byte) ([]string, error) {
+	log.Println("DecodeArrayString")
+	value, err := Decode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("A DecodeArrayString")
+	log.Println(value)
+
+	ts := value.([]interface{})
+	log.Println(len(ts))
+	tokens := make([]string, len(ts))
+	for i := range tokens {
+		tokens[i] = ts[i].(string)
+	}
+
+	return tokens, nil
+}
+
+func Encode(value interface{}, isSimple bool) []byte {
+	switch v := value.(type) {
+	case string:
+		if isSimple {
+			return []byte(fmt.Sprintf("+%s\r\n", v))
+		}
+		return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(v), v))
+	}
+	return []byte{}
 }
