@@ -12,7 +12,7 @@ import (
 	"github.com/amrishkshah/dicedb/core"
 )
 
-func readCommand(c net.Conn) (*core.RedisCmd, error) {
+func readCommand(c io.ReadWriter) (*core.RedisCmd, error) {
 
 	var buf []byte = make([]byte, 512)
 	n, err := c.Read(buf[:])
@@ -30,11 +30,11 @@ func readCommand(c net.Conn) (*core.RedisCmd, error) {
 	}, nil
 }
 
-func respondError(err error, c net.Conn) {
+func respondError(err error, c io.ReadWriter) {
 	c.Write([]byte(fmt.Sprintf("-%s\r\n", err)))
 }
 
-func respond(cmd *core.RedisCmd, c net.Conn) {
+func respond(cmd *core.RedisCmd, c io.ReadWriter) {
 	err := core.EvalAndRespond(cmd, c)
 	if err != nil {
 		respondError(err, c)
