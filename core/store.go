@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"github.com/amrishkshah/dicedb/config"
 )
 
 var store = make(map[string]*Obj)
@@ -24,6 +26,9 @@ func newObj(value interface{}, durationMs int64) *Obj {
 }
 
 func Put(k string, obj *Obj) {
+	if len(store) >= config.MaxKeyLimit {
+		evict()
+	}
 	store[k] = obj
 }
 
