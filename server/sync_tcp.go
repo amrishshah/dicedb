@@ -28,10 +28,14 @@ func readCommands(c io.ReadWriter) (core.RedisCmds, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println(buf)
 	values, err := core.Decode(buf[:n])
 	if err != nil {
 		return nil, err
+	}
+
+	if values == nil {
+		log.Panicln("sd")
 	}
 
 	var cmds []*core.RedisCmd = make([]*core.RedisCmd, 0)

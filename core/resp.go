@@ -1,17 +1,37 @@
 package core
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 func readLength(data []byte) (int, int) {
-	pos := 0
-	for ; data[pos] != '\r'; pos++ {
+	pos, length := 0, 0
+	for ; data[length] != '\r'; length++ {
 
 	}
-	return int(data[pos-1] - '0'), pos + 2
+	// for pos = range data {
+	// 	b := data[pos]
+	// 	if !(b >= '0' && b <= '9') {
+	// 		log.Println(length)
+	// 		log.Println(pos)
+	// 		log.Println("ReadLength End")
+	// 		return length, pos + 2
+	// 	}
+	// 	length = length*10 + int(b-'0')
+	// }
+	i, err := strconv.Atoi(string(data[pos : pos+length]))
+	if err != nil {
+		// ... handle error
+		panic(err)
+	}
+	log.Println(i)
+	log.Println(pos)
+	log.Println("WE")
+	return i, pos + length + 2
 }
 
 func readSimpleString(data []byte) (string, int, error) {
@@ -38,8 +58,11 @@ func readInt64(data []byte) (int64, int, error) {
 
 func readBulkString(data []byte) (string, int, error) {
 	pos := 1
+	log.Println("e")
+	//log.Println(string(data[pos:]))
 	len, delta := readLength(data[pos:])
 	pos += delta
+	//log.Println(string(data[pos : pos+len]))
 	return string(data[pos : pos+len]), pos + len + 2, nil
 
 }
@@ -91,6 +114,7 @@ func Decode(data []byte) ([]interface{}, error) {
 		return nil, errors.New("no data")
 	}
 	log.Println("Decode")
+	log.Println(data)
 	var values []interface{} = make([]interface{}, 0)
 	var index int = 0
 	for index < len(data) {
@@ -98,10 +122,19 @@ func Decode(data []byte) ([]interface{}, error) {
 		if err != nil {
 			return values, err
 		}
+		if value == nil {
+			log.Println(values)
+			log.Panicln("sd")
+
+		}
 		index = index + delta
 		values = append(values, value)
 	}
 	return values, nil
+}
+
+func encodeString(v string) []byte {
+	return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(v), v))
 }
 
 func Encode(value interface{}, isSimple bool) []byte {
@@ -110,7 +143,14 @@ func Encode(value interface{}, isSimple bool) []byte {
 		if isSimple {
 			return []byte(fmt.Sprintf("+%s\r\n", v))
 		}
-		return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(v), v))
+		return encodeString(v)
+	case []string:
+		var b []byte
+		buf := bytes.NewBuffer(b)
+		for _, b := range value.([]string) {
+			buf.Write(encodeString(b))
+		}
+		return []byte(fmt.Sprintf("*%d\r\n%s", len(v), buf.Bytes()))
 	case int, int8, int16, int32, int64:
 		return []byte(fmt.Sprintf(":%d\r\n", v))
 	case error:
