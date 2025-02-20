@@ -64,7 +64,7 @@ func evalSET(args []string) []byte {
 	log.Println("hi")
 	log.Println(key)
 	log.Println(value, exDurationMs)
-	Put(key, newObj(value, exDurationMs, oType, oEnc))
+	Put(key, NewObj(value, exDurationMs, oType, oEnc))
 	return RESP_OK
 }
 
@@ -81,15 +81,16 @@ func evalTTL(args []string) []byte {
 		return RESP_MINUS_2
 	}
 
-	if obj.ExpiresAt == -1 {
+	exp, isExpirySet := getExpiry(obj)
+	if !isExpirySet {
 		return RESP_MINUS_1
 	}
 
-	durationMs := obj.ExpiresAt - time.Now().UnixMilli()
-
-	if durationMs < 0 {
+	if exp < uint64(time.Now().UnixMilli()) {
 		return RESP_MINUS_2
 	}
+
+	durationMs := exp - uint64(time.Now().UnixMilli())
 
 	return (Encode(int64(durationMs/1000), false))
 }
@@ -108,7 +109,7 @@ func evalGET(args []string) []byte {
 		return RESP_NIL
 	}
 
-	if obj.ExpiresAt != -1 && obj.ExpiresAt <= time.Now().UnixMilli() {
+	if hasExpired(obj) {
 		return RESP_NIL
 	}
 
@@ -151,7 +152,7 @@ func evalExpire(args []string) []byte {
 		return RESP_ZERO
 	}
 
-	obj.ExpiresAt = time.Now().UnixMilli() + exDurationSec*1000
+	setExpiry(obj, exDurationSec*1000)
 
 	//c.Write([]byte(":1\r\n"))
 	return RESP_ONE
@@ -166,7 +167,7 @@ func evalINCR(args []string) []byte {
 	var key string = args[0]
 	obj := Get(key)
 	if obj == nil {
-		obj = newObj("0", -1, OBJ_TYPE_STRING, OBJ_ENCODING_INT)
+		obj = NewObj("0", -1, OBJ_TYPE_STRING, OBJ_ENCODING_INT)
 		Put(key, obj)
 	}
 
