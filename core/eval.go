@@ -209,6 +209,11 @@ func evalLATENCY(args []string) []byte {
 	return Encode([]string{}, false)
 }
 
+func evalLRU(args []string) []byte {
+	evictAllkeysLRU()
+	return RESP_OK
+}
+
 func EvalAndRespond(cmds RedisCmds, c io.ReadWriter) {
 	var response []byte
 	buf := bytes.NewBuffer(response)
@@ -236,6 +241,8 @@ func EvalAndRespond(cmds RedisCmds, c io.ReadWriter) {
 			buf.Write(evalCLIENT(cmd.Args))
 		case "LATENCY":
 			buf.Write(evalLATENCY(cmd.Args))
+		case "LRU":
+			buf.Write(evalLRU(cmd.Args))
 		default:
 			buf.Write(evalPING(cmd.Args))
 		}
