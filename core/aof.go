@@ -18,9 +18,9 @@ func dumpKey(fp *os.File, key string, obj *Obj) {
 	fp.Write(Encode(tokens, false))
 }
 
-// TODO: To to new and switch
+// TODO: To to new and switch to a new file
 func DumpAllAOF() {
-	fp, err := os.OpenFile(config.AOFFile, os.O_CREATE|os.O_WRONLY, os.ModeAppend)
+	fp, err := os.OpenFile(config.AOFFile, os.O_CREATE|os.O_WRONLY, os.FileMode(0644))
 	if err != nil {
 		fmt.Print("error", err)
 		return
