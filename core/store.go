@@ -50,6 +50,7 @@ func Get(k string) *Obj {
 			Del(k)
 			return nil
 		}
+		v.LastAccessedAt = getCurrentClock()
 	}
 	return v
 }
